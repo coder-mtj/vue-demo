@@ -118,11 +118,22 @@ onMounted(() => {
   getToolsList();
 });
 
+// 添加获取token的辅助函数
+const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
+
 // 获取农具列表
 const getToolsList = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('/api/tools/page', { params: queryParams });
+    const token = getAuthToken();
+    const response = await axios.get('/api/tools/page', { 
+      params: queryParams,
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data.code === 200) {
       // 处理返回数据
       if (response.data.data && response.data.data.list) {
@@ -154,7 +165,12 @@ const getToolsList = async () => {
 const getToolUsageRecords = async (toolId) => {
   usageLoading.value = true;
   try {
-    const response = await axios.get(`/api/toolusage/listByTool/${toolId}`);
+    const token = getAuthToken();
+    const response = await axios.get(`/api/toolusage/listByTool/${toolId}`, {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data.code === 200) {
       usageRecords.value = response.data.data || [];
     } else {
@@ -299,11 +315,16 @@ const submitForm = async () => {
         // 打印将要提交的数据，用于调试
         console.log('提交的数据:', formDataToSubmit);
         
+        const token = getAuthToken();
+        const headers = {
+          'Authorization': token
+        };
+        
         let response;
         if (dialogType.value === 'add') {
-          response = await axios.post('/api/tools/add', formDataToSubmit);
+          response = await axios.post('/api/tools/add', formDataToSubmit, { headers });
         } else {
-          response = await axios.put('/api/tools/update', formDataToSubmit);
+          response = await axios.put('/api/tools/update', formDataToSubmit, { headers });
         }
         
         if (response.data.code === 200) {
@@ -341,8 +362,13 @@ const submitForm = async () => {
 // 更新农具状态
 const updateToolStatus = async (id, status) => {
   try {
+    const token = getAuthToken();
     // 使用查询参数而不是请求体
-    const response = await axios.put(`/api/tools/updateStatus?id=${id}&status=${status}`);
+    const response = await axios.put(`/api/tools/updateStatus?id=${id}&status=${status}`, {}, {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data.code === 200) {
       ElMessage.success('状态更新成功');
       getToolsList();

@@ -150,6 +150,11 @@ const cropFormRules = {
   ]
 };
 
+// 添加获取token的辅助函数
+const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
+
 // 初始化
 onMounted(() => {
   // 获取用户信息
@@ -171,7 +176,13 @@ onMounted(() => {
 const getFieldsList = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('/api/field/page', { params: queryParams });
+    const token = getAuthToken();
+    const response = await axios.get('/api/field/page', { 
+      params: queryParams,
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.success) {
       const data = response.data.data;
       fieldsList.value = data.list || [];
@@ -234,7 +245,12 @@ const openEditDialog = async (row) => {
   
   try {
     // 获取完整田块信息
-    const response = await axios.get(`/api/field/get/${row.id}`);
+    const token = getAuthToken();
+    const response = await axios.get(`/api/field/get/${row.id}`, {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.success && response.data.data) {
       // 填充表单数据
       Object.keys(formData).forEach(key => {
@@ -279,11 +295,16 @@ const submitForm = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
+        const token = getAuthToken();
+        const headers = {
+          'Authorization': token
+        };
+        
         let response;
         if (dialogType.value === 'add') {
-          response = await axios.post('/api/field/add', formData);
+          response = await axios.post('/api/field/add', formData, { headers });
         } else {
-          response = await axios.put('/api/field/update', formData);
+          response = await axios.put('/api/field/update', formData, { headers });
         }
         
         if (response.data && response.data.success) {
@@ -329,7 +350,12 @@ const handleDelete = (row) => {
     }
   ).then(async () => {
     try {
-      const response = await axios.delete(`/api/field/delete/${row.id}`);
+      const token = getAuthToken();
+      const response = await axios.delete(`/api/field/delete/${row.id}`, {
+        headers: {
+          'Authorization': token
+        }
+      });
       if (response.data && response.data.success) {
         ElMessage.success(response.data.message || '删除成功');
         getFieldsList();
@@ -358,7 +384,12 @@ const handleDelete = (row) => {
 // 更新田块状态
 const updateFieldStatus = async (id, status) => {
   try {
-    const response = await axios.put(`/api/field/updateStatus?id=${id}&status=${status}`);
+    const token = getAuthToken();
+    const response = await axios.put(`/api/field/updateStatus?id=${id}&status=${status}`, {}, {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.success) {
       ElMessage.success('状态更新成功');
       getFieldsList();
@@ -396,11 +427,15 @@ const openCropDialog = async (row) => {
   
   try {
     // 使用新的API查询当年作物关系
+    const token = getAuthToken();
     const response = await axios.get('/api/fieldcrop/getByYearAndIds', { 
       params: {
         plantingYear: cropQueryParams.plantingYear,
         fieldId: row.id,
         status: cropQueryParams.status
+      },
+      headers: {
+        'Authorization': token
       }
     });
     
@@ -469,11 +504,16 @@ const submitCropForm = async () => {
   await cropFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
+        const token = getAuthToken();
+        const headers = {
+          'Authorization': token
+        };
+        
         let response;
         if (!cropFormData.id) {
-          response = await axios.post('/api/fieldcrop/add', cropFormData);
+          response = await axios.post('/api/fieldcrop/add', cropFormData, { headers });
         } else {
-          response = await axios.put('/api/fieldcrop/update', cropFormData);
+          response = await axios.put('/api/fieldcrop/update', cropFormData, { headers });
         }
         
         if (response.data && response.data.code === 200) {
@@ -495,7 +535,12 @@ const submitCropForm = async () => {
 // 获取作物列表
 const getCropsList = async () => {
   try {
-    const response = await axios.get('/api/crop/list');
+    const token = getAuthToken();
+    const response = await axios.get('/api/crop/list', {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.success) {
       cropsList.value = response.data.data || [];
     } else {
@@ -521,7 +566,12 @@ const handleDeleteCrop = (row) => {
     }
   ).then(async () => {
     try {
-      const response = await axios.delete(`/api/fieldcrop/delete/${row.id}`);
+      const token = getAuthToken();
+      const response = await axios.delete(`/api/fieldcrop/delete/${row.id}`, {
+        headers: {
+          'Authorization': token
+        }
+      });
       if (response.data && response.data.code === 200) {
         ElMessage.success(response.data.msg || '删除成功');
         // 刷新作物列表
@@ -541,7 +591,12 @@ const handleDeleteCrop = (row) => {
 // 更新作物关系状态
 const updateCropStatus = async (id, status) => {
   try {
-    const response = await axios.put(`/api/fieldcrop/updateStatus?id=${id}&status=${status}`);
+    const token = getAuthToken();
+    const response = await axios.put(`/api/fieldcrop/updateStatus?id=${id}&status=${status}`, {}, {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.code === 200) {
       ElMessage.success('状态更新成功');
       // 刷新作物列表

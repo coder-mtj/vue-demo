@@ -268,12 +268,21 @@ const SYSTEM_PROMPT = `你是天道葡萄园的专业客服人员，负责解答
 
 记住：你是在代表天道葡萄园与顾客交流，不是在教授葡萄种植知识。`;
 
-// 加载葡萄品种数据
+// 添加从localStorage获取用户token的函数
+const getUserToken = () => {
+  return localStorage.getItem('token');
+};
+
+// 修改loadGrapeVarieties函数，添加用户token认证
 const loadGrapeVarieties = async () => {
   loadingGrapeData.value = true;
   try {
+    // 获取用户token
+    const token = getUserToken();
     // 1. 先获取葡萄作物信息
-    const response = await axios.get('/api/crop/list');
+    const response = await axios.get('/api/crop/list', {
+      headers: token ? { 'Authorization': token } : {}
+    });
     if (response.data && response.data.code === 200 && response.data.data) {
       grapeVarieties.value = response.data.data.filter(crop => crop.status === 1);
       console.log('加载葡萄品种数据成功:', grapeVarieties.value);
@@ -291,10 +300,14 @@ const loadGrapeVarieties = async () => {
   }
 };
 
-// 加载田块数据
+// 修改loadFieldData函数，添加用户token认证
 const loadFieldData = async () => {
   try {
-    const response = await axios.get('/api/field/list');
+    // 获取用户token
+    const token = getUserToken();
+    const response = await axios.get('/api/field/list', {
+      headers: token ? { 'Authorization': token } : {}
+    });
     if (response.data && response.data.code === 200 && response.data.data) {
       // 将田块数据转换为字典格式，方便查询
       const fields = response.data.data;
@@ -311,7 +324,7 @@ const loadFieldData = async () => {
   }
 };
 
-// 加载田块作物关系数据
+// 修改loadFieldCropData函数，添加用户token认证
 const loadFieldCropData = async () => {
   loadingFieldCropData.value = true;
   try {
@@ -323,8 +336,12 @@ const loadFieldCropData = async () => {
     // 获取当前年份
     const currentYear = new Date().getFullYear();
     
+    // 获取用户token
+    const token = getUserToken();
     // 获取田块作物关系数据
-    const response = await axios.get(`/api/fieldcrop/getByYearAndIds?plantingYear=${currentYear}`);
+    const response = await axios.get(`/api/fieldcrop/getByYearAndIds?plantingYear=${currentYear}`, {
+      headers: token ? { 'Authorization': token } : {}
+    });
     if (response.data && response.data.code === 200 && response.data.data) {
       fieldCropData.value = response.data.data;
       console.log('加载田块作物关系数据成功:', fieldCropData.value);
@@ -338,18 +355,21 @@ const loadFieldCropData = async () => {
   }
 };
 
-// 加载当前年份的工具使用记录
+// 修改loadToolUsageRecords函数，添加用户token认证
 const loadToolUsageRecords = async () => {
   try {
     // 获取当前年份
     const startDate = `${currentYear}-01-01`;
     const endDate = `${currentYear}-12-31`;
     
+    // 获取用户token
+    const token = getUserToken();
     const response = await axios.get('/api/toolusage/listByDateRange', {
       params: {
         startDate,
         endDate
-      }
+      },
+      headers: token ? { 'Authorization': token } : {}
     });
     
     if (response.data && response.data.code === 200 && response.data.data) {
@@ -958,9 +978,12 @@ watch(
 
 // 组件挂载时执行
 onMounted(() => {
-  // 自动退出登录
-  localStorage.removeItem('token');
-  localStorage.removeItem('userInfo');
+  // 移除自动退出登录的逻辑
+  // localStorage.removeItem('token');
+  // localStorage.removeItem('userInfo');
+  
+  // 获取用户信息
+  getUserInfo();
   
   loadChatHistory();
   loadGrapeVarieties(); // 加载葡萄品种数据

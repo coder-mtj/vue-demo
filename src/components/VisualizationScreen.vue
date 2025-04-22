@@ -126,6 +126,11 @@ const charts = {
   cropMaturity: null
 };
 
+// 添加获取token的辅助函数
+const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
+
 // 农具查询参数
 const toolQueryParams = reactive({
   status: null
@@ -180,7 +185,12 @@ const getUserInfo = () => {
 // 获取所有农具数据
 const getToolsData = async () => {
   try {
-    const response = await axios.get('/api/tools/list');
+    const token = getAuthToken();
+    const response = await axios.get('/api/tools/list', {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.code === 200) {
       toolsData.value = response.data.data || [];
       return response.data.data || [];
@@ -196,12 +206,16 @@ const getToolsData = async () => {
 // 获取所有作物基础信息
 const getCropsData = async () => {
   try {
+    const token = getAuthToken();
     const response = await axios.get('/api/crop/page', {
       params: {
         pageNum: 1,
         pageSize: 100,
         cropType: '葡萄',
         status: 1
+      },
+      headers: {
+        'Authorization': token
       }
     });
     

@@ -78,6 +78,11 @@ const dialogTitle = ref('');
 const dialogType = ref('add'); // add, edit
 const formRef = ref(null);
 
+// 添加获取token的辅助函数
+const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
+
 // 初始化获取数据
 onMounted(() => {
   getDepartmentList();
@@ -87,7 +92,13 @@ onMounted(() => {
 const getDepartmentList = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('/api/department/page', { params: queryParams });
+    const token = getAuthToken();
+    const response = await axios.get('/api/department/page', { 
+      params: queryParams,
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data.success) {
       // 适配新的API响应格式
       if (response.data.data && response.data.data.list) {
@@ -201,11 +212,16 @@ const submitForm = async () => {
   await formRef.value.validate(async (valid) => {
     if (valid) {
       try {
+        const token = getAuthToken();
+        const headers = {
+          'Authorization': token
+        };
+        
         let response;
         if (dialogType.value === 'add') {
-          response = await axios.post('/api/department/add', formData);
+          response = await axios.post('/api/department/add', formData, { headers });
         } else {
-          response = await axios.put('/api/department/update', formData);
+          response = await axios.put('/api/department/update', formData, { headers });
         }
         
         if (response.data.success) {
@@ -248,7 +264,12 @@ const handleDelete = (id) => {
     type: 'warning'
   }).then(async () => {
     try {
-      const response = await axios.delete(`/api/department/delete/${id}`);
+      const token = getAuthToken();
+      const response = await axios.delete(`/api/department/delete/${id}`, {
+        headers: {
+          'Authorization': token
+        }
+      });
       if (response.data.success) {
         ElMessage.success(response.data.message || '删除成功');
         getDepartmentList();

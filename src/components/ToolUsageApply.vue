@@ -59,6 +59,11 @@ const queryParams = reactive({
   pageSize: 10
 });
 
+// 添加获取token的辅助函数
+const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
+
 // 初始化
 onMounted(async () => {
   // 从localStorage获取用户信息
@@ -83,8 +88,13 @@ onMounted(async () => {
 // 获取正在使用中的农具列表
 const getUsingToolsList = async () => {
   try {
+    const token = getAuthToken();
     // 获取当前正在使用中的农具（可根据实际接口调整）
-    const response = await axios.get('/api/toolusage/using');
+    const response = await axios.get('/api/toolusage/using', {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.code === 200 && response.data.data) {
       usingTools.value = response.data.data;
     } else {
@@ -101,7 +111,12 @@ const getUsingToolsList = async () => {
 const getToolsList = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('/api/tools/list');
+    const token = getAuthToken();
+    const response = await axios.get('/api/tools/list', {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.code === 200 && response.data.data) {
       // 只获取状态为正常的农具
       tools.value = response.data.data.filter(tool => tool.status === 1);
@@ -119,7 +134,12 @@ const getToolsList = async () => {
 // 获取职工列表
 const getEmployeesList = async () => {
   try {
-    const response = await axios.get('/api/employee/list');
+    const token = getAuthToken();
+    const response = await axios.get('/api/employee/list', {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.code === 200 && response.data.data) {
       employees.value = response.data.data;
     } else {
@@ -134,7 +154,12 @@ const getEmployeesList = async () => {
 // 获取田块列表
 const getFieldsList = async () => {
   try {
-    const response = await axios.get('/api/field/list');
+    const token = getAuthToken();
+    const response = await axios.get('/api/field/list', {
+      headers: {
+        'Authorization': token
+      }
+    });
     if (response.data && response.data.code === 200 && response.data.data) {
       fields.value = response.data.data;
     } else {
@@ -234,7 +259,12 @@ const submitApply = async () => {
         // 打印提交数据
         console.log('提交数据:', dataToSubmit);
         
-        const response = await axios.post('/api/toolusage/add', dataToSubmit);
+        const token = getAuthToken();
+        const response = await axios.post('/api/toolusage/add', dataToSubmit, {
+          headers: {
+            'Authorization': token
+          }
+        });
         
         if (response.data && response.data.code === 200) {
           ElMessage.success('申请提交成功');
