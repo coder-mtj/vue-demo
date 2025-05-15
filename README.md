@@ -123,4 +123,4 @@ npm run build
 
 ## 许可
 
-[MIT](LICENSE)
+[HIT](LICENSE)
